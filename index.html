@@ -1,750 +1,438 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SHAKTHISAT FLIGHT SUITE | Autonomous Aerospace Architecture</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism-core.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --void:#080b10;
-    --panel:#0e131b;
-    --card:#131a24;
-    --card-hi:#182131;
-    --border:#1e2733;
-    --border-hi:#2a3646;
-    --cyan:#22d3ee;
-    --cyan-dim:#0e7490;
-    --teal:#2dd4bf;
-    --amber:#fbbf24;
-    --red:#f87171;
-    --ink:#dbe4ee;
-    --ink-dim:#7c8ba1;
-    --ink-faint:#4b5a6e;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:
-      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(34,211,238,0.07), transparent),
-      radial-gradient(ellipse 60% 40% at 90% 100%, rgba(45,212,191,0.05), transparent),
-      var(--void);
-    color:var(--ink);
-    font-family:'Inter',sans-serif;
-    min-height:100vh;
-  }
-  .font-display{font-family:'Space Grotesk',sans-serif;}
-  .font-mono{font-family:'JetBrains Mono',monospace;}
-  ::-webkit-scrollbar{width:8px;height:8px;}
-  ::-webkit-scrollbar-track{background:var(--panel);}
-  ::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:4px;}
-  ::-webkit-scrollbar-thumb:hover{background:var(--cyan-dim);}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShakthiSAT Aerospace Flight Suite Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-secondary: #121824;
+            --bg-tertiary: #1a2334;
+            --accent-blue: #00e5ff;
+            --accent-green: #39ff14;
+            --accent-orange: #ff9d00;
+            --accent-red: #ff3366;
+            --text-main: #e2e8f0;
+            --text-muted: #64748b;
+            --font-code: 'Courier New', Courier, monospace;
+        }
 
-  .glass{
-    background:linear-gradient(180deg, rgba(19,26,36,0.9), rgba(14,19,27,0.9));
-    border:1px solid var(--border);
-  }
-  .glow-cyan{box-shadow:0 0 0 1px rgba(34,211,238,0.15), 0 0 24px rgba(34,211,238,0.08);}
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-primary); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; }
+        
+        /* Layout Structure */
+        .sidebar { width: 320px; background-color: var(--bg-secondary); border-right: 1px solid var(--bg-tertiary); display: flex; flex-direction: column; height: 100%; }
+        .main-content { flex: 1; display: flex; flex-direction: column; height: 100%; padding: 20px; gap: 20px; overflow-y: auto; }
+        
+        /* Sidebar styling */
+        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--bg-tertiary); background: linear-gradient(135deg, #121824, #1a2334); }
+        .sidebar-header h2 { font-size: 1.2rem; color: var(--accent-blue); display: flex; align-items: center; gap: 10px; }
+        .sidebar-header p { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+        .file-tree { flex: 1; overflow-y: auto; padding: 15px; }
+        .folder-node { margin-bottom: 12px; }
+        .folder-title { font-size: 0.85rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .file-item { padding: 8px 12px; font-family: var(--font-code); font-size: 0.85rem; color: var(--text-main); cursor: pointer; display: flex; align-items: center; gap: 8px; border-radius: 4px; transition: all 0.2s; }
+        .file-item:hover { background-color: var(--bg-tertiary); color: var(--accent-blue); }
+        .file-item.active { background-color: rgba(0, 229, 255, 0.1); color: var(--accent-blue); border-left: 3px solid var(--accent-blue); }
 
-  .orbit-hud{position:relative;width:56px;height:56px;flex-shrink:0;}
-  .orbit-hud svg{position:absolute;inset:0;animation:spin 14s linear infinite;}
-  .orbit-hud .core{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
-  @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
-  @keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:0.35;}}
+        /* Dashboard widgets grid */
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; height: calc(100% - 10px); min-height: 0; }
+        .left-column { display: flex; flex-direction: column; gap: 20px; }
+        .right-column { display: flex; flex-direction: column; background-color: var(--bg-secondary); border: 1px solid var(--bg-tertiary); border-radius: 6px; overflow: hidden; }
 
-  .tree-btn{
-    display:flex;align-items:center;gap:8px;
-    width:100%;text-align:left;padding:6px 10px;border-radius:6px;
-    font-family:'JetBrains Mono',monospace;font-size:12.5px;
-    color:var(--ink-dim);border:1px solid transparent;
-    transition:all .15s ease;
-  }
-  .tree-btn:hover{background:var(--card-hi);color:var(--ink);}
-  .tree-btn.active{
-    background:rgba(34,211,238,0.08);
-    border-color:rgba(34,211,238,0.35);
-    color:var(--cyan);
-  }
-  .tree-btn.fault{
-    color:var(--red) !important;
-    border-color:rgba(248,113,113,0.5) !important;
-    background:rgba(248,113,113,0.08) !important;
-    animation:fault-flicker 1.1s ease-in-out infinite;
-  }
-  @keyframes fault-flicker{0%,100%{opacity:1;}50%{opacity:0.55;}}
+        .widget-panel { background-color: var(--bg-secondary); border: 1px solid var(--bg-tertiary); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; }
+        .panel-header { font-size: 0.9rem; font-weight: bold; color: var(--accent-blue); text-transform: uppercase; border-bottom: 1px solid var(--bg-tertiary); padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Terminal console logger */
+        .terminal-stream { flex: 1; background-color: #05070b; border: 1px solid #111722; border-radius: 4px; padding: 12px; font-family: var(--font-code); font-size: 0.8rem; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; min-height: 200px; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); }
+        .log-entry { display: flex; gap: 10px; line-height: 1.4; }
+        .log-ts { color: var(--text-muted); }
+        .log-tag { font-weight: bold; }
+        .log-tag.info { color: var(--accent-blue); }
+        .log-tag.warn { color: var(--accent-orange); }
+        .log-tag.crit { color: var(--accent-red); }
+        .log-text { color: #cbd5e1; }
 
-  .domain-group{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:rgba(19,26,36,0.4);}
-  .domain-head{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:10px 12px;cursor:pointer;user-select:none;
-    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12.5px;
-    letter-spacing:.04em;color:var(--ink);
-  }
-  .domain-head:hover{background:var(--card-hi);}
-  .chev{transition:transform .2s ease;color:var(--ink-faint);}
-  .chev.open{transform:rotate(90deg);}
-  .domain-body{overflow:hidden;transition:max-height .25s ease;padding:0 8px;}
+        /* Telemetry data table grid view */
+        .teleview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .teleview-card { background-color: var(--bg-tertiary); padding: 12px; border-radius: 4px; border-left: 3px solid var(--text-muted); }
+        .teleview-card.nominal { border-left-color: var(--accent-green); }
+        .teleview-card.warning { border-left-color: var(--accent-orange); }
+        .teleview-card.fault { border-left-color: var(--accent-red); }
+        .card-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+        .card-val { font-size: 1.2rem; font-weight: bold; font-family: var(--font-code); margin-top: 4px; }
 
-  .term-line{opacity:0;animation:term-in .3s ease forwards;}
-  @keyframes term-in{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:translateY(0);}}
+        /* Code Viewer */
+        .code-container-header { background-color: var(--bg-tertiary); padding: 10px 16px; font-family: var(--font-code); font-size: 0.8rem; display: flex; justify-content: space-between; border-bottom: 1px solid var(--bg-tertiary); }
+        .code-viewer-body { flex: 1; margin: 0; padding: 16px; background-color: #070a10; overflow: auto; font-family: var(--font-code); font-size: 0.85rem; color: #a6accd; line-height: 1.5; white-space: pre; }
+        
+        .fdir-btn { background: linear-gradient(135deg, #ff3366, #ff9d00); color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; margin-top: auto; letter-spacing: 0.5px; transition: opacity 0.2s; }
+        .fdir-btn:hover { opacity: 0.9; }
 
-  .metric-card{
-    background:var(--card);border:1px solid var(--border);border-radius:10px;
-    padding:12px 14px;position:relative;overflow:hidden;
-  }
-  .metric-val{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:20px;color:var(--cyan);transition:color .3s ease;}
-  .metric-val.warn{color:var(--amber);}
-  .metric-val.crit{color:var(--red);}
-  .metric-bar-track{height:4px;border-radius:2px;background:var(--border);overflow:hidden;margin-top:8px;}
-  .metric-bar-fill{height:100%;background:linear-gradient(90deg,var(--cyan-dim),var(--cyan));transition:width .4s ease;}
-
-  .badge{
-    display:inline-flex;align-items:center;gap:5px;
-    font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:500;
-    padding:3px 9px;border-radius:999px;letter-spacing:.03em;
-  }
-  .badge-pass{background:rgba(45,212,191,0.1);color:var(--teal);border:1px solid rgba(45,212,191,0.3);}
-  .badge-cyan{background:rgba(34,211,238,0.1);color:var(--cyan);border:1px solid rgba(34,211,238,0.3);}
-
-  .toggle{width:38px;height:20px;border-radius:999px;background:var(--border);position:relative;cursor:pointer;transition:background .2s ease;flex-shrink:0;}
-  .toggle.on{background:var(--cyan-dim);}
-  .toggle .knob{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--ink-faint);transition:all .2s ease;}
-  .toggle.on .knob{left:20px;background:var(--cyan);box-shadow:0 0 8px rgba(34,211,238,0.6);}
-
-  pre[class*="language-"]{background:transparent !important;margin:0 !important;padding:0 !important;font-size:12.5px;line-height:1.6;}
-  code[class*="language-"]{font-family:'JetBrains Mono',monospace !important;}
-
-  .anomaly-progress{height:6px;border-radius:3px;background:var(--border);overflow:hidden;}
-  .anomaly-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--amber),var(--teal));transition:width .1s linear;}
-
-  .scanlines{
-    background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 3px);
-    pointer-events:none;
-  }
-
-  @media (max-width: 1024px){
-    .main-grid{grid-template-columns:1fr !important;}
-  }
-</style>
+        /* Switch styling */
+        .switch-container { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted); }
+        .switch { position: relative; display: inline-block; width: 34px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #24324d; transition: .3s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-blue); }
+        input:checked + .slider:before { transform: translateX(14px); }
+    </style>
 </head>
 <body>
 
-<div class="max-w-[1600px] mx-auto px-4 md:px-6 py-5">
-
-  <header class="glass rounded-2xl px-5 py-4 mb-5 flex flex-wrap items-center justify-between gap-4">
-    <div class="flex items-center gap-4">
-      <div class="orbit-hud">
-        <svg viewBox="0 0 56 56" fill="none">
-          <ellipse cx="28" cy="28" rx="24" ry="10" stroke="var(--cyan)" stroke-opacity="0.35" stroke-width="1"/>
-          <ellipse cx="28" cy="28" rx="24" ry="10" stroke="var(--teal)" stroke-opacity="0.2" stroke-width="1" transform="rotate(60 28 28)"/>
-          <ellipse cx="28" cy="28" rx="24" ry="10" stroke="var(--teal)" stroke-opacity="0.2" stroke-width="1" transform="rotate(120 28 28)"/>
-          <circle cx="52" cy="28" r="2.4" fill="var(--cyan)"><animateMotion dur="7s" repeatCount="indefinite" path="M 0,0 a 24,10 0 1,0 -48,0 a 24,10 0 1,0 48,0"/></circle>
-        </svg>
-        <div class="core"><i data-lucide="satellite-dish" class="w-4 h-4" style="color:var(--cyan)"></i></div>
-      </div>
-      <div>
-        <h1 class="font-display text-lg md:text-xl font-semibold tracking-tight text-slate-100">🛰️ SHAKTHISAT FLIGHT SUITE</h1>
-        <p class="font-mono text-[11px] text-slate-500 mt-0.5">Autonomous Aerospace Architecture &nbsp;/&nbsp; rev. 1.0.0-stable</p>
-      </div>
-    </div>
-
-    <div class="flex items-center gap-5">
-      <div class="text-right">
-        <div class="font-mono text-[10px] text-slate-500 tracking-widest uppercase">UTC Mission Time</div>
-        <div id="utcClock" class="font-mono text-base font-medium tracking-wide" style="color:var(--cyan);">00:00:00Z</div>
-      </div>
-      <a href="https://github.com/aafkapatnaik-cloud/ShakthiSAT-Aerospace-Portfolio" target="_blank" rel="noopener" class="badge badge-cyan hover:brightness-125 transition">
-        <i data-lucide="github" class="w-3 h-3"></i> view source
-      </a>
-    </div>
-  </header>
-
-  <div class="main-grid grid gap-5" style="grid-template-columns:25% 35% 40%;">
-
-    <div class="glass rounded-2xl p-4 h-fit">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="font-display text-[13px] font-semibold text-slate-300 tracking-wide">SUBSYSTEM MANIFEST</h2>
-        <span class="badge badge-pass"><i data-lucide="folder-tree" class="w-3 h-3"></i> 16 modules</span>
-      </div>
-      <div id="manifestTree" class="flex flex-col gap-2"></div>
-
-      <div class="mt-4 pt-4" style="border-top:1px solid var(--border);">
-        <button id="anomalyBtn" class="w-full flex items-center justify-center gap-2 font-mono text-[11.5px] font-medium py-2.5 rounded-lg transition"
-          style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.35);color:var(--amber);">
-          <i data-lucide="zap" class="w-3.5 h-3.5"></i> SIMULATE SUBSYSTEM ANOMALY
-        </button>
-        <div id="anomalyStatus" class="mt-2 hidden">
-          <div class="flex items-center justify-between font-mono text-[10.5px] text-slate-500 mb-1">
-            <span id="anomalyLabel">Self-healing patch sequence...</span>
-            <span id="anomalyPct">0%</span>
-          </div>
-          <div class="anomaly-progress"><div id="anomalyFill" class="anomaly-progress-fill"></div></div>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fa-solid var(--fa-satellite)"></i> ShakthiSAT Suite</h2>
+            <p>Flight Core Workspace v4.0.0</p>
         </div>
-      </div>
+        <div class="file-tree">
+            <div class="folder-node">
+                <div class="folder-title"><i class="fa-solid fa-folder-open"></i> Core Root</div>
+                <div class="file-item active" onclick="selectFile('telemetry_generator.py')">
+                    <i class="fa-solid fa-file-code" style="color: var(--accent-orange)"></i> telemetry_generator.py
+                </div>
+            </div>
+
+            <div class="folder-node">
+                <div class="folder-title"><i class="fa-solid fa-folder"></i> ADCS</div>
+                <div class="file-item" onclick="selectFile('ADCS/magnetorquer_controller.py')">
+                    <i class="fa-solid fa-file-code" style="color: #4da6ff"></i> magnetorquer_controller.py
+                </div>
+            </div>
+
+            <div class="folder-node">
+                <div class="folder-title"><i class="fa-solid fa-folder"></i> EPS</div>
+                <div class="file-item" onclick="selectFile('EPS/power_distribution_manager.py')">
+                    <i class="fa-solid fa-file-code" style="color: #4dffb8"></i> power_distribution_manager.py
+                </div>
+                <div class="file-item" onclick="selectFile('EPS/battery_charging_sim.py')">
+                    <i class="fa-solid fa-file-code" style="color: #4dffb8"></i> battery_charging_sim.py
+                </div>
+                <div class="file-item" onclick="selectFile('EPS/depth_of_discharge_tracker.py')">
+                    <i class="fa-solid fa-file-code" style="color: #4dffb8"></i> depth_of_discharge_tracker.py
+                </div>
+                <div class="file-item" onclick="selectFile('EPS/shunt_regulator.py')">
+                    <i class="fa-solid fa-file-code" style="color: #4dffb8"></i> shunt_regulator.py
+                </div>
+                <div class="file-item" onclick="selectFile('EPS/solar_panel_sun_tracker.py')">
+                    <i class="fa-solid fa-file-code" style="color: #4dffb8"></i> solar_panel_sun_tracker.py
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="flex flex-col gap-5">
+    <div class="main-content">
+        <div class="dashboard-grid">
+            
+            <div class="left-column">
+                <div class="widget-panel">
+                    <div class="panel-header">
+                        <span><i class="fa-solid fa-chart-simple"></i> Dynamic Telemetry Node Data Stream</span>
+                        <div class="switch-container">
+                            <span>Live Loop</span>
+                            <label class="switch">
+                                <input type="checkbox" id="liveLoopToggle" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="teleview-grid">
+                        <div class="teleview-card nominal" id="card-mode">
+                            <div class="card-label">System Mode</div>
+                            <div class="card-val" style="color: var(--accent-green)">NOMINAL</div>
+                        </div>
+                        <div class="teleview-card nominal" id="card-v">
+                            <div class="card-label">Bus Voltage</div>
+                            <div class="card-val">3.82 V</div>
+                        </div>
+                        <div class="teleview-card nominal" id="card-altitude">
+                            <div class="card-label">Altitude</div>
+                            <div class="card-val">384.22 km</div>
+                        </div>
+                        <div class="teleview-card nominal" id="card-sun">
+                            <div class="card-label">Sun Align Angle</div>
+                            <div class="card-val">45.00°</div>
+                        </div>
+                    </div>
+                </div>
 
-      <div class="glass rounded-2xl p-4">
-        <div class="flex items-center justify-between mb-2">
-          <h2 class="font-display text-[13px] font-semibold text-slate-300 tracking-wide flex items-center gap-2">
-            <i data-lucide="brain-circuit" class="w-4 h-4" style="color:var(--teal)"></i> AI AUTONOMY COGNITIVE CORE
-          </h2>
-          <span class="badge badge-pass"><span class="w-1.5 h-1.5 rounded-full" style="background:var(--teal);animation:pulse-dot 1.6s ease-in-out infinite;"></span> agentic loop live</span>
-        </div>
-        <div id="terminalFeed" class="font-mono text-[11.5px] leading-relaxed h-40 overflow-y-auto rounded-lg p-3 scanlines" style="background:#060911;border:1px solid var(--border);"></div>
-      </div>
+                <div class="widget-panel" style="flex: 1;">
+                    <div class="panel-header">
+                        <span><i class="fa-solid fa-terminal"></i> Flight Suite STDOUT Live Stream Console</span>
+                    </div>
+                    <div class="terminal-stream" id="terminalLog">
+                        </div>
+                </div>
 
-      <div class="glass rounded-2xl p-4">
-        <h2 class="font-display text-[13px] font-semibold text-slate-300 tracking-wide flex items-center gap-2 mb-2">
-          <i data-lucide="terminal" class="w-4 h-4" style="color:var(--amber)"></i> LIVE CONSOLE STDOUT EXECUTION
-        </h2>
-        <div id="stdoutConsole" class="font-mono text-[11px] text-emerald-400 p-3 h-28 overflow-y-auto rounded-lg bg-black border border-slate-800">
-          Initializing standard output pipeline...
-        </div>
-      </div>
+                <button class="fdir-btn" onclick="triggerAnomaly()"><i class="fa-solid fa-triangle-exclamation"></i> Simulate Subsystem Battery Anomaly (Trigger FDIR)</button>
+            </div>
 
-      <div class="glass rounded-2xl p-4">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="font-display text-[13px] font-semibold text-slate-300 tracking-wide flex items-center gap-2">
-            <i data-lucide="activity" class="w-4 h-4" style="color:var(--cyan)"></i> INTERACTIVE TELEMETRY TELEVIEW
-          </h2>
-          <div class="flex items-center gap-2">
-            <span class="font-mono text-[10.5px] text-slate-500">live loop</span>
-            <div id="telemetryToggle" class="toggle on"><div class="knob"></div></div>
-          </div>
+            <div class="right-column">
+                <div class="code-container-header">
+                    <span id="activeFileNameHeader"><i class="fa-solid fa-file-code"></i> telemetry_generator.py</span>
+                    <span style="color: var(--text-muted); font-size: 0.75rem;"><i class="fa-solid fa-microchip"></i> Isolated Runtime Environment: PASS</span>
+                </div>
+                <pre class="code-viewer-body" id="codeViewerBox">Loading clean flight code space container matrices...</pre>
+            </div>
+
         </div>
-        <div class="mb-2 font-mono text-[11px] text-slate-500">domain: <span id="activeDomainLabel" class="text-slate-300">EPS · Electrical Power System</span></div>
-        <div id="metricsGrid" class="grid grid-cols-2 gap-3"></div>
-      </div>
     </div>
 
-    <div class="glass rounded-2xl p-4 flex flex-col" style="min-height:520px;">
-      <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
-        <div class="flex items-center gap-2">
-          <i data-lucide="file-code-2" class="w-4 h-4" style="color:var(--cyan)"></i>
-          <span id="fileNameLabel" class="font-mono text-[13px] font-medium text-slate-200">eps_battery_manager.py</span>
-        </div>
-        <button id="copyBtn" class="copy-btn badge badge-cyan hover:brightness-125">
-          <i data-lucide="copy" class="w-3 h-3"></i> <span id="copyLabel">copy code</span>
-        </button>
-      </div>
+    <script>
+        const codeRepository = {
+            "telemetry_generator.py": `"""
+ShakthiSAT Flight Suite - Core System Driver
+Telemetry Generator (telemetry_generator.py)
 
-      <div class="flex flex-wrap items-center gap-2 mb-3">
-        <span id="lineCountBadge" class="badge" style="background:var(--card);border:1px solid var(--border);color:var(--ink-dim);"><i data-lucide="align-left" class="w-3 h-3"></i> 0 lines</span>
-        <span id="byteSizeBadge" class="badge" style="background:var(--card);border:1px solid var(--border);color:var(--ink-dim);"><i data-lucide="hard-drive" class="w-3 h-3"></i> 0 B</span>
-        <span class="badge badge-pass"><i data-lucide="check-circle-2" class="w-3 h-3"></i> Isolated Runtime Environment: PASS</span>
-      </div>
+Orchestrates data packet generation by aggregating real-time subsystem state matrices
+across the ADCS and EPS architectural nodes into standardized CCSDS-like telemetry frames.
+"""
 
-      <div id="codeViewport" class="flex-1 overflow-auto rounded-lg p-3" style="background:#060911;border:1px solid var(--border);min-height:400px;">
-        <pre class="language-python"><code id="codeBlock" class="language-python"></code></pre>
-      </div>
-    </div>
-  </div>
+import random
+import time
+from ADCS.magnetorquer_controller import calculate_detumbling_field
+from EPS.power_distribution_manager import PowerDistributionManager
+from EPS.solar_panel_sun_tracker import SolarPanelSunTracker
 
-  <footer class="text-center font-mono text-[10.5px] text-slate-600 mt-6 pb-4">
-    All telemetry, packets, and subsystem states on this page are simulated client-side for demonstration purposes. No spacecraft were harmed.
-  </footer>
-</div>
+class SpacecraftTelemetryOrchestrator:
+    def __init__(self):
+        self.pdu_manager = PowerDistributionManager(critical_threshold_v=3.4)
+        self.sun_tracker = SolarPanelSunTracker()
+        self.packet_counter = 0
 
-<script>
-lucide.createIcons();
+    def generate_flight_frame(self) -> dict:
+        self.packet_counter += 1
+        altitude_km = round(random.uniform(350.0, 420.0), 2)
+        system_temp_c = round(random.uniform(-15.0, 35.0), 2)
 
-const DOMAINS = {
-  EPS: { label:"Electrical Power System", icon:"zap", accent:"var(--cyan)" },
-  ADCS:{ label:"Attitude Determination & Control", icon:"compass", accent:"var(--teal)" },
-  CDH: { label:"Command & Data Handling", icon:"server", accent:"var(--cyan)" },
-  GS:  { label:"Ground Station Components", icon:"radio-tower", accent:"var(--teal)" },
-};
+        # Extract EPS metrics dynamically
+        simulated_bus_voltage = round(random.uniform(3.2, 4.1), 2)
+        pdu_telemetry = self.pdu_manager.check_battery_voltage(simulated_bus_voltage)
 
-const MODULES = {
-"eps_battery_manager.py": { domain:"EPS", code:`"""\neps_battery_manager.py\nBattery Management Unit (BMU) driver.\nTracks state of charge, per-cell voltage balancing, and thermal limits\nfor the primary Li-ion pack.\n"""\n\nimport time\n\nCELL_COUNT = 4\nNOMINAL_CELL_V = 3.7\nMAX_CELL_DELTA_V = 0.05\n\n\nclass BatteryManager:\n    \"\"\"Owns state-of-charge estimation and cell balancing for the pack.\"\"\"\n\n    def __init__(self, cell_voltages=None):\n        self.cell_voltages = cell_voltages or [3.80, 3.85, 3.70, 3.65]\n        self.pack_temp_c = 25.0\n        self.capacity_wh = 120.0\n        self.consumed_wh = 1.2\n\n    def calculate_soc(self) -> float:\n        \"\"\"Coulomb-counted state of charge, clamped to [0, 100].\"\"\"\n        remaining = self.capacity_wh - self.consumed_wh\n        soc = (remaining / self.capacity_wh) * 100.0\n        return max(0.0, min(100.0, round(soc, 2)))\n\n    def cell_balancing(self) -> list:\n        \"\"\"Bleed the highest cells toward the pack average voltage.\"\"\"\n        avg_v = sum(self.cell_voltages) / len(self.cell_voltages)\n        balanced = []\n        for v in self.cell_voltages:\n            if v - avg_v > MAX_CELL_DELTA_V:\n                v -= 0.02  # passive bleed resistor step\n            balanced.append(round(v, 2))\n        self.cell_voltages = balanced\n        return balanced\n\n    def telemetry_frame(self) -> dict:\n        return {\n            \"soc_pct\": self.calculate_soc(),\n            \"temp_c\": self.pack_temp_c,\n            \"cell_v\": self.cell_balancing(),\n        }\n\n\nif __name__ == \"__main__\":\n    bmu = BatteryManager()\n    frame = bmu.telemetry_frame()\n    print(f\"SoC: {frame['soc_pct']:.2f}%\")\n    print(f\"Temp: {frame['temp_c']:.0f} C\")\n    print(f\"Balanced cell voltages: {frame['cell_v']}\")\n    time.sleep(0)`},
-"eps_solar_regulator.py": { domain:"EPS", code: `"""\neps_solar_regulator.py\nMaximum Power Point Tracking (MPPT) regulator for body-mounted\nsolar arrays, feeding the unregulated bus.\n"""\n\nSTEP_MV = 20\n\n\nclass SolarRegulator:\n    \"\"\"Perturb-and-observe MPPT controller.\"\"\"\n\n    def __init__(self):\n        self.panel_voltage_mv = 4200\n        self.panel_current_ma = 310\n        self.last_power_mw = self._power()\n\n    def _power(self) -> float:\n        return (self.panel_voltage_mv * self.panel_current_ma) / 1000.0\n\n    def perturb_and_observe(self) -> float:\n        \"\"\"Nudge operating voltage toward the max power point.\"\"\"\n        self.panel_voltage_mv += STEP_MV\n        new_power = self._power()\n        if new_power < self.last_power_mw:\n            self.panel_voltage_mv -= 2 * STEP_MV\n            new_power = self._power()\n        self.last_power_mw = new_power\n        return new_power\n\n    def regulate_bus_voltage(self, target_mv=5000) -> int:\n        \"\"\"Buck-convert panel output down to the regulated bus rail.\"\"\"\n        efficiency = 0.94\n        return int(min(target_mv, self.panel_voltage_mv * efficiency))\n\n\nif __name__ == \"__main__\":\n    reg = SolarRegulator()\n    power_mw = reg.perturb_and_observe()\n    bus_mv = reg.regulate_bus_voltage()\n    print(f\"Panel power: {power_mw:.1f} mW\")\n    print(f\"Regulated bus: {bus_mv} mV\")`},
-"eps_power_distribution.py": { domain:"EPS", code: `"""\neps_power_distribution.py\nSwitched power distribution unit (PDU). Enables/disables load rails\nand trips on over-current to protect the bus.\n"""\n\nOVER_CURRENT_LIMIT_MA = 1500\n\n\nclass PowerDistribution:\n    \"\"\"Manages individually switched load rails off the main bus.\"\"\"\n\n    def __init__(self):\n        self.rails = {\n            \"adcs\": {\"on\": True, \"current_ma\": 220},\n            \"cdh\": {\"on\": True, \"current_ma\": 180},\n            \"payload\": {\"on\": False, \"current_ma\": 0},\n            \"gs_tx\": {\"on\": False, \"current_ma\": 0},\n        }\n\n    def set_rail(self, name: str, state: bool) -> None:\n        if name not in self.rails:\n            raise KeyError(f\"Unknown rail: {name}\")\n        self.rails[name][\"on\"] = state\n\n    def total_current_ma(self) -> int:\n        return sum(r[\"current_ma\"] for r in self.rails.values() if r[\"on\"])\n\n    def check_over_current(self) -> list:\n        \"\"\"Trip any rail individually exceeding the safety limit.\"\"\"\n        tripped = []\n        for name, rail in self.rails.items():\n            if rail[\"on\"] and rail[\"current_ma\"] > OVER_CURRENT_LIMIT_MA:\n                rail[\"on\"] = False\n                tripped.append(name)\n        return tripped\n\n\nif __name__ == \"__main__\":\n    pdu = PowerDistribution()\n    pdu.set_rail(\"payload\", True)\n    print(f\"Total bus draw: {pdu.total_current_ma()} mA\")\n    print(f\"Tripped rails: {pdu.check_over_current()}\")`},
-"eps_telemetry.py": { domain:"EPS", code: `"""\neps_telemetry.py\nAggregates raw EPS sensor readings into a single housekeeping\ntelemetry packet with a checksum for downlink.\n"""\n\nimport struct\n\n\nclass EPSTelemetry:\n    \"\"\"Packs EPS housekeeping values into a fixed-width binary frame.\"\"\"\n\n    def __init__(self, soc_pct, bus_mv, temp_c, current_ma):\n        self.soc_pct = soc_pct\n        self.bus_mv = bus_mv\n        self.temp_c = temp_c\n        self.current_ma = current_ma\n\n    def _checksum(self, payload: bytes) -> int:\n        return sum(payload) & 0xFF\n\n    def pack(self) -> bytes:\n        payload = struct.pack(\n            \">HHhH\",\n            int(self.soc_pct * 100),\n            int(self.bus_mv),\n            int(self.temp_c * 10),\n            int(self.current_ma),\n        )\n        return payload + bytes([self._checksum(payload)])\n\n\nif __name__ == \"__main__\":\n    frame = EPSTelemetry(soc_pct=98.6, bus_mv=5010, temp_c=24.8, current_ma=410)\n    packed = frame.pack()\n    print(f\"EPS frame ({len(packed)} bytes): {packed.hex().upper()}\")`},
-"adcs_sensor_fusion.py": { domain:"ADCS", code: `"""\nadcs_sensor_fusion.py\nComplementary filter fusing gyroscope and magnetometer readings\ninto a stable attitude quaternion estimate.\n"""\n\nimport math\n\nGYRO_WEIGHT = 0.98\n\n\nclass SensorFusion:\n    \"\"\"Lightweight complementary filter — no external math dependencies.\"\"\"\n\n    def __init__(self):\n        self.quaternion = (1.0, 0.0, 0.0, 0.0)  # w, x, y, z\n\n    def _normalize(self, q):\n        norm = math.sqrt(sum(c * c for c in q))\n        return tuple(c / norm for c in q) if norm else q\n\n    def fuse(self, gyro_rate, mag_vector, dt=0.1):\n        \"\"\"Blend integrated gyro rate with the magnetometer correction.\"\"\"\n        w, x, y, z = self.quaternion\n        gx, gy, gz = gyro_rate\n        dq = (\n            w - 0.5 * dt * (gx * x + gy * y + gz * z),\n            x + 0.5 * dt * (gx * w + gz * y - gy * z),\n            y + 0.5 * dt * (gy * w + gx * z - gz * x),\n            z + 0.5 * dt * (gz * w + gy * x - gx * y),\n        )\n        mag_correction = tuple(c * (1 - GYRO_WEIGHT) for c in mag_vector[:4] + (0,) * 4)\n        blended = tuple(GYRO_WEIGHT * a + b for a, b in zip(dq, mag_correction[:4]))\n        self.quaternion = self._normalize(blended)\n        return self.quaternion\n\n\nif __name__ == \"__main__\":\n    fusion = SensorFusion()\n    q = fusion.fuse(gyro_rate=(0.01, -0.02, 0.005), mag_vector=(0.99, 0.02, -0.01))\n    print(f\"Fused quaternion: {tuple(round(c, 4) for c in q)}\")`},
-"adcs_controller.py": { domain:"ADCS", code: `"""\nadcs_controller.py\nAttitude control laws: a B-Dot detumble controller for initial rate\ndamping, and a PID loop for fine pointing. Pure Python — no NumPy.\n"""\n\nclass BDotController:\n    \"\"\"Detumble law: torque opposes the rate of change of the B-field.\"\"\"\n\n    def __init__(self, gain=-8500):\n        self.gain = gain\n        self.prev_b = (0.0, 0.0, 0.0)\n\n    def compute_torque(self, b_field, dt=0.5):\n        b_dot = tuple((b - pb) / dt for b, pb in zip(b_field, self.prev_b))\n        self.prev_b = b_field\n        return tuple(self.gain * bd for bd in b_dot)\n\n\nclass PIDController:\n    \"\"\"Standard PID with integral clamping for reaction wheel pointing.\"\"\"\n\n    def __init__(self, kp=1.2, ki=0.05, kd=0.4, i_limit=5.0):\n        self.kp, self.ki, self.kd = kp, ki, kd\n        self.i_limit = i_limit\n        self.integral = 0.0\n        self.prev_error = 0.0\n\n    def update(self, error, dt=0.1):\n        self.integral = max(-self.i_limit, min(self.i_limit, self.integral + error * dt))\n        derivative = (error - self.prev_error) / dt\n        self.prev_error = error\n        return self.kp * error + self.ki * self.integral + self.kd * derivative\n\n\ndef stabilize(spin_rate_rad_s, target=0.02, steps=6):\n    \"\"\"Iteratively damp spin rate toward the target, B-Dot style.\"\"\"\n    trace = [spin_rate_rad_s]\n    rate = spin_rate_rad_s\n    for _ in range(steps):\n        rate -= (rate - target) * 0.55\n        trace.append(round(rate, 3))\n    return trace\n\n\nif __name__ == \"__main__\":\n    trace = stabilize(4.2)\n    print(f\"Spin Rate: {trace[0]} rad/s -> Stabilizing to {trace[-1]} rad/s\")\n    print(f\"Damping trace: {trace}\")`},
-"adcs_actuator_interface.py": { domain:"ADCS", code: `"""\nadcs_actuator_interface.py\nHardware abstraction layer for reaction wheels and magnetorquers.\nClamps commanded torques to physical actuator limits.\n"""\n\nMAX_WHEEL_TORQUE_MNM = 25.0\nMAX_TORQUER_DIPOLE_AM2 = 0.2\n\n\nclass ActuatorInterface:\n    \"\"\"Translates control-law outputs into safe hardware commands.\"\"\"\n\n    def __init__(self):\n        self.wheel_speeds_rpm = [0.0, 0.0, 0.0]\n\n    def command_wheels(self, torques_mnm):\n        clamped = [max(-MAX_WHEEL_TORQUE_MNM, min(MAX_WHEEL_TORQUE_MNM, t)) for t in torques_mnm]\n        for i, t in enumerate(clamped):\n            self.wheel_speeds_rpm[i] += t * 0.4\n        return clamped\n\n    def command_torquers(self, dipole_am2):\n        return tuple(\n            max(-MAX_TORQUER_DIPOLE_AM2, min(MAX_TORQUER_DIPOLE_AM2, d)) for d in dipole_am2\n        )\n\n\nif __name__ == \"__main__\":\n    actuators = ActuatorInterface()\n    applied = actuators.command_wheels([30.0, -10.0, 5.0])\n    print(f\"Clamped wheel torques (mN·m): {applied}\")\n    print(f\"Wheel speeds (RPM): {[round(s, 2) for s in actuators.wheel_speeds_rpm]}\")`},
-"adcs_orbit_propagator.py": { domain:"ADCS", code: `"""\nadcs_orbit_propagator.py\nAnalytical two-body Keplerian propagator for short-horizon attitude\nand eclipse prediction. Pure math, no NumPy/SciPy required.\n"""\n\nimport math\n\nMU_EARTH = 398600.4418  # km^3/s^2\n\n\nclass OrbitPropagator:\n    \"\"\"Propagates a Keplerian element set forward using mean anomaly.\"\"\"\n\n    def __init__(self, semi_major_km, eccentricity, mean_anomaly_deg=0.0):\n        self.a = semi_major_km\n        self.e = eccentricity\n        self.m0 = math.radians(mean_anomaly_deg)\n        self.n = math.sqrt(MU_EARTH / self.a ** 3)  # mean motion, rad/s\n\n    def mean_anomaly_at(self, t_seconds) -> float:\n        return (self.m0 + self.n * t_seconds) % (2 * math.pi)\n\n    def eccentric_anomaly(self, mean_anomaly, tol=1e-6, max_iter=20) -> float:\n        \"\"\"Newton-Raphson solve of Kepler's equation.\"\"\"\n        e_anom = mean_anomaly\n        for _ in range(max_iter):\n            f = e_anom - self.e * math.sin(e_anom) - mean_anomaly\n            f_prime = 1 - self.e * math.cos(e_anom)\n            step = f / f_prime\n            e_anom -= step\n            if abs(step) < tol:\n                break\n        return e_anom\n\n    def true_anomaly_at(self, t_seconds) -> float:\n        m = self.mean_anomaly_at(t_seconds)\n        e_anom = self.eccentric_anomaly(m)\n        return 2 * math.atan2(\n            math.sqrt(1 + self.e) * math.sin(e_anom / 2),\n            math.sqrt(1 - self.e) * math.cos(e_anom / 2),\n        )\n\n\nif __name__ == \"__main__\":\n    orbit = OrbitPropagator(semi_major_km=6878, eccentricity=0.001)\n    nu = orbit.true_anomaly_at(t_seconds=300)\n    period_min = (2 * math.pi / orbit.n) / 60\n    print(f\"Orbital period: {period_min:.2f} min\")\n    print(f\"True anomaly @ t+300s: {math.degrees(nu):.3f} deg\")`},
-"cdh_telemetry_aggregator.py": { domain:"CDH", code: `"""\ncdh_telemetry_aggregator.py\nMerges per-subsystem telemetry into a single CCSDS-style packet\nfor storage and downlink scheduling.\n"""\n\nimport time\n\n\nclass TelemetryAggregator:\n    \"\"\"Collects subsystem frames and assembles a housekeeping packet.\"\"\"\n\n    def __init__(self):\n        self.buffer = {}\n\n    def ingest(self, subsystem: str, frame: dict) -> None:\n        self.buffer[subsystem] = {\"frame\": frame, \"t\": time.time()}\n\n    def assemble_packet(self) -> dict:\n        return {\n            \"apid\": 0x1A2,\n            \"seq\": int(time.time()) & 0xFFFF,\n            \"subsystems\": list(self.buffer.keys()),\n            \"payload\": {k: v[\"frame\"] for k, v in self.buffer.items()},\n        }\n\n\nif __name__ == \"__main__\":\n    agg = TelemetryAggregator()\n    agg.ingest(\"eps\", {\"soc_pct\": 98.6})\n    agg.ingest(\"adcs\", {\"spin_rate\": 0.02})\n    packet = agg.assemble_packet()\n    print(f\"Packet APID: 0x{packet['apid']:03X}\")\n    print(f\"Subsystems merged: {packet['subsystems']}\")`},
-"cdh_command_dispatcher.py": { domain:"CDH", code: `"""\ncdh_command_dispatcher.py\nPriority command queue and dispatcher. Validates opcodes against\nthe known command table before execution.\n"""\n\nimport heapq\n\nVALID_OPCODES = {0x01: \"SAFE_MODE\", 0x02: \"SET_RAIL\", 0x03: \"SLEW\", 0x04: \"DOWNLINK\"}\n\n\nclass CommandDispatcher:\n    \"\"\"Min-heap priority queue keyed by (priority, sequence).\"\"\"\n\n    def __init__(self):\n        self._queue = []\n        self._seq = 0\n\n    def enqueue(self, opcode: int, priority: int = 5, args=None) -> None:\n        if opcode not in VALID_OPCODES:\n            raise ValueError(f\"Unknown opcode: 0x{opcode:02X}\")\n        heapq.heappush(self._queue, (priority, self._seq, opcode, args or {}))\n        self._seq += 1\n\n    def dispatch_next(self):\n        if not self._queue:\n            return None\n        priority, _, opcode, args = heapq.heappop(self._queue)\n        return {\"opcode\": VALID_OPCODES[opcode], \"priority\": priority, \"args\": args}\n\n    def depth(self) -> int:\n        return len(self._queue)\n\n\nif __name__ == \"__main__\":\n    dispatcher = CommandDispatcher()\n    dispatcher.enqueue(0x03, priority=2, args={\"target_deg\": 45})\n    dispatcher.enqueue(0x01, priority=0)\n    print(f\"Queue depth: {dispatcher.depth()}\")\n    print(f\"Next command: {dispatcher.dispatch_next()}\")`},
-"cdh_flash_fs.py": { domain:"CDH", code: `"""\ncdh_flash_fs.py\nMinimal wear-leveled flash file system for onboard data recorder\nstorage. Rotates writes across blocks to extend flash lifetime.\n"""\n\nBLOCK_SIZE_B = 4096\nTOTAL_BLOCKS = 512\n\n\nclass FlashFS:\n    \"\"\"Round-robin wear leveling across a simulated flash block table.\"\"\"\n\n    def __init__(self):\n        self.write_counts = [0] * TOTAL_BLOCKS\n        self.cursor = 0\n        self.files = {}\n\n    def _next_block(self) -> int:\n        block = self.cursor\n        self.write_counts[block] += 1\n        self.cursor = (self.cursor + 1) % TOTAL_BLOCKS\n        return block\n\n    def write_file(self, name: str, size_bytes: int) -> list:\n        blocks_needed = max(1, -(-size_bytes // BLOCK_SIZE_B))\n        blocks = [self._next_block() for _ in range(blocks_needed)]\n        self.files[name] = blocks\n        return blocks\n\n    def usage_pct(self) -> float:\n        used = sum(1 for c in self.write_counts if c > 0)\n        return round((used / TOTAL_BLOCKS) * 100, 2)\n\n\nif __name__ == \"__main__\":\n    fs = FlashFS()\n    fs.write_file(\"payload_capture_0447.bin\", size_bytes=20480)\n    print(f\"Blocks allocated: {fs.files['payload_capture_0447.bin']}\")\n    print(f\"Flash usage: {fs.usage_pct()}%\")`},
-"cdh_watchdog.py": { domain:"CDH", code: `"""\ncdh_watchdog.py\nIndependent hardware watchdog. If the main loop fails to pet the\ndog within the timeout window, the system forces a safe-mode entry.\n"""\n\nimport time\n\n\nclass Watchdog:\n    \"\"\"Countdown timer requiring periodic resets from the main loop.\"\"\"\n\n    def __init__(self, timeout_s=8.0):\n        self.timeout_s = timeout_s\n        self.last_pet = time.monotonic()\n        self.trip_count = 0\n\n    def pet(self) -> None:\n        self.last_pet = time.monotonic()\n\n    def check(self) -> bool:\n        \"\"\"Returns True if still healthy, False if it just timed out.\"\"\"\n        elapsed = time.monotonic() - self.last_pet\n        if elapsed > self.timeout_s:\n            self.trip_count += 1\n            self.last_pet = time.monotonic()\n            return False\n        return True\n\n\nif __name__ == \"__main__\":\n    dog = Watchdog(timeout_s=8.0)\n    dog.pet()\n    print(f\"Watchdog healthy: {dog.check()}\")\n    print(f\"Lifetime trip count: {dog.trip_count}\")`},
-"gs_receiver.py": { domain:"GS", code: `"""\ngs_receiver.py\nGround station downlink receiver. Parses raw hex frames off the\nSDR front-end, validating sync words before handing off payload.\n"""\n\nSYNC_WORD = 0x1ACFFC1D\n\n\nclass GroundReceiver:\n    \"\"\"Frames raw hex into validated CCSDS-style transfer frames.\"\"\"\n\n    def parse_hex_frame(self, hex_str: str) -> dict:\n        raw = bytes.fromhex(hex_str.replace(\"0x\", \"\").replace(\" \", \"\"))\n        sync = int.from_bytes(raw[:4], \"big\")\n        if sync != SYNC_WORD and len(raw) >= 4:\n            return {\"sync_ok\": False, \"length\": len(raw), \"payload\": raw.hex().upper()}\n        payload = raw[4:]\n        return {\"sync_ok\": True, \"length\": len(payload), \"payload\": payload.hex().upper()}\n\n\nif __name__ == \"__main__\":\n    rx = GroundReceiver()\n    frame = rx.parse_hex_frame(\"0104AABBCCDD\")\n    print(f\"Frame length: {frame['length']} bytes\")\n    print(f\"Payload: 0x{frame['payload']}\")`},
-"gs_transmitter.py": { domain:"GS", code: `"""\ngs_transmitter.py\nUplink command framer. Wraps command bytes with a sync word,\nlength field, and CRC-16 before modulation.\n"""\n\ndef crc16_ccitt(data: bytes, poly=0x1021, init=0xFFFF) -> int: \n    crc = init\n    for byte in data:\n        crc ^= byte << 8\n        for _ in range(8):\n            crc = ((crc << 1) ^ poly) & 0xFFFF if crc & 0x8000 else (crc << 1) & 0xFFFF\n    return crc\n\n\nclass GroundTransmitter:\n    \"\"\"Builds uplink frames for the command dispatcher on the spacecraft.\"\"\"\n\n    SYNC = b\"\\\\x1A\\\\xCF\\\\xFC\\\\x1D\"\n\n    def build_frame(self, command_bytes: bytes) -> bytes:\n        length = len(command_bytes).to_bytes(2, \"big\")\n        crc = crc16_ccitt(command_bytes).to_bytes(2, \"big\")\n        return self.SYNC + length + command_bytes + crc\n\n\nif __name__ == \"__main__\":\n    tx = GroundTransmitter()\n    frame = tx.build_frame(bytes([0x03, 0x2D]))\n    print(f\"Uplink frame ({len(frame)} bytes): {frame.hex().upper()}\")`},
-"gs_dashboard.py": { domain:"GS", code: `"""\ngs_dashboard.py\nOperator-facing dashboard aggregation layer. Formats incoming\ntelemetry packets into a human-readable console summary.\n"""\n\nclass GroundDashboard:\n    \"\"\"Pure-Python formatter — no web framework dependency required.\"\"\"\n\n    def __init__(self):\n        self.latest = {}\n\n    def update(self, packet: dict) -> None:\n        self.latest = packet\n\n    def render_summary(self) -> str:\n        if not self.latest:\n            return \"NO TELEMETRY RECEIVED\"\n        lines = [f\"{k.upper():<10}: {v}\" for k, v in self.latest.items()]\n        return \"\\n\".join(lines)\n\n\nif __name__ == \"__main__\":\n    dash = GroundDashboard()\n    dash.update({\"soc_pct\": 98.6, \"spin_rate\": 0.02, \"bus_mv\": 5010})\n    print(dash.render_summary())`},
-"gs_pass_predictor.py": { domain:"GS", code: `"""\ngs_pass_predictor.py\nAnalytical look-angle (azimuth/elevation) calculation for predicting\nupcoming ground station passes from a simplified orbit model.\n"""\n\nimport math\n\nEARTH_RADIUS_KM = 6371.0\n\n\nclass PassPredictor:\n    \"\"\"Computes elevation angle of a satellite above the local horizon.\"\"\"\n\n    def __init__(self, sat_alt_km, ground_lat_deg=26.9):\n        self.sat_alt_km = sat_alt_km\n        self.ground_lat_deg = ground_lat_deg\n\n    def elevation_deg(self, range_km) -> float:\n        r_sat = EARTH_RADIUS_KM + self.sat_alt_km\n        cos_gamma = (EARTH_RADIUS_KM ** 2 + range_km ** 2 - r_sat ** 2) / (\n            2 * EARTH_RADIUS_KM * range_km\n        )\n        cos_gamma = max(-1.0, min(1.0, cos_gamma))\n        gamma = math.acos(cos_gamma)\n        return round(90.0 - math.degrees(gamma), 2)\n\n    def upcoming_passes(self, orbits_per_day=14.2, hours=24) -> int:\n        \"\"\"Rough pass count assuming ~35% of orbits cross the mask.\"\"\"\n        orbits_in_window = orbits_per_day * (hours / 24)\n        return int(orbits_in_window * 0.35)\n\n\nif __name__ == \"__main__\":\n    predictor = PassPredictor(sat_alt_km=500)\n    print(f\"Elevation @ 1200km range: {predictor.elevation_deg(1200)} deg\")\n    print(f\"Predicted passes (24h): {predictor.upcoming_passes()}\")`}
-};
+        # Resolve tracking angle loops
+        mock_sun_vector = (random.choice([-1.0, 0.707, 1.0]), random.choice([0.0, 0.707, -1.0]))
+        target_panel_angle = self.sun_tracker.calculate_optimal_angle(mock_sun_vector)
 
-const FILE_ORDER = {
-  EPS: ["eps_battery_manager.py","eps_solar_regulator.py","eps_power_distribution.py","eps_telemetry.py"],
-  ADCS:["adcs_sensor_fusion.py","adcs_controller.py","adcs_actuator_interface.py","adcs_orbit_propagator.py"],
-  CDH: ["cdh_telemetry_aggregator.py","cdh_command_dispatcher.py","cdh_flash_fs.py","cdh_watchdog.py"],
-  GS:  ["gs_receiver.py","gs_transmitter.py","gs_dashboard.py","gs_pass_predictor.py"],
-};
+        # Extract ADCS calculation commands
+        mock_magnetometer_input = [1.2e-5, -0.4e-5, 2.1e-5]
+        commanded_dipole = calculate_detumbling_field(mock_magnetometer_input)
 
-/* ============================================================
-   STATE & EMULATED HARDWARE CORE (THE BRAIN)
-   ============================================================ */
-let selectedFile = "eps_battery_manager.py";
-let telemetryOn = true;
-let anomalyActive = false;
-let anomalyFaultFile = null;
-let simStep = 0;
+        return {
+            "HEADER": {"packet_id": self.packet_counter, "system_mode": pdu_telemetry["mode"]},
+            "SYS_HEALTH": {"altitude_km": altitude_km, "core_temp_c": system_temp_c},
+            "EPS_METRICS": {"bus_voltage_v": simulated_bus_voltage, "rails_status": pdu_telemetry["rails"], "panel_actuator_target_deg": target_panel_angle},
+            "ADCS_METRICS": {"commanded_field_t": commanded_dipole}
+        }`,
 
-let hwState = {
-  soc: 98.6,
-  bus: 5.01,
-  temp: 24.8,
-  chg: 410,
-  spin: 0.02,
-  quat: 1.0000,
-  wheel: 2140,
-  perr: 0.31,
-  pkt: 42,
-  wdog: 3.2,
-  flash: 37.4,
-  cmdq: 2,
-  elev: 41.2,
-  rssi: -82,
-  pass: 14,
-  dopp: -820
-};
+            "ADCS/magnetorquer_controller.py": `"""
+ShakthiSAT Flight Suite - Attitude Determination & Control System (ADCS)
+Magnetorquer Controller (magnetorquer_controller.py)
 
-const METRIC_DEFS = {
-  EPS: [
-    {key:"soc",   label:"Battery SoC",        unit:"%",     max:100, decimals:1},
-    {key:"bus",   label:"Bus Voltage",        unit:"V",     max:5.3, decimals:2},
-    {key:"temp",  label:"Core Temperature",   unit:"°C",    max:60,  decimals:1},
-    {key:"chg",   label:"Charge Current",     unit:"mA",    max:1500,decimals:0},
-  ],
-  ADCS: [
-    {key:"spin",  label:"Angular Spin Rate",  unit:"rad/s", max:5,   decimals:3},
-    {key:"quat",  label:"Quaternion Norm",    unit:"",      max:1.02,decimals:4},
-    {key:"wheel", label:"Reaction Wheel",     unit:"RPM",   max:6000,decimals:0},
-    {key:"perr",  label:"Pointing Error",     unit:"deg",   max:10,  decimals:2},
-  ],
-  CDH: [
-    {key:"pkt",   label:"Packet Rate",        unit:"pkt/s", max:120, decimals:0},
-    {key:"wdog",  label:"Watchdog Counter",   unit:"s",     max:8,   decimals:1},
-    {key:"flash", label:"Flash Usage",        unit:"%",     max:100, decimals:1},
-    {key:"cmdq",  label:"Command Queue",      unit:"cmds",  max:16,  decimals:0},
-  ],
-  GS: [
-    {key:"elev",  label:"Elevation Angle",    unit:"deg",   max:90,  decimals:1},
-    {key:"rssi",  label:"Signal Strength",    unit:"dBm",   max:-40, decimals:0},
-    {key:"pass",  label:"Next Pass",          unit:"min",   max:120, decimals:0},
-    {key:"dopp",  label:"Doppler Shift",      unit:"Hz",    max:2000,decimals:0},
-  ],
-};
+Calculates the active detumbling magnetic dipole moments using an algorithmic 
+B-dot control law pattern to damp high-rate angular velocity post-deployment.
+"""
 
-const AI_THOUGHTS = {
-  EPS: [
-    "[THOUGHT] Sampling BMU cell voltages... nominal spread stable.",
-    "[THOUGHT] Bus regulation loop holding fine, noise ripple < 40mV.",
-    "[INFO] Solar panel efficiency profile matching MPPT expectations.",
-    "[THOUGHT] State of charge tracking confirms zero cell degradation."
-  ],
-  ADCS:[
-    "[THOUGHT] Running complementary gyro filter... rotation lock acquired.",
-    "[THOUGHT] Attitude determination matches fine pointing constraints.",
-    "[INFO] Reaction wheel torque load limits within safe threshold.",
-    "[THOUGHT] Keplerian orbit tracker executing continuous drift checks."
-  ],
-  CDH: [
-    "[THOUGHT] Validating incoming dispatch stack frames... clear.",
-    "[INFO] System tick watchdog successfully refreshed by main logic loop.",
-    "[THOUGHT] Wear-level index rotating writes across partition tables.",
-    "[THOUGHT] System transaction logs buffered for scheduled downlinks."
-  ],
-  GS:  [
-    "[THOUGHT] Sync word correlation established with ground terminal.",
-    "[INFO] Elevation mask check indicates active downlink contact horizon.",
-    "[THOUGHT] Adjusting hardware receiver to compensate for Doppler shift.",
-    "[THOUGHT] Calculating next station intercept coordinates... matching."
-  ],
-};
+def calculate_detumbling_field(b_field_input: list) -> list:
+    """Calculates detumbling magnetic dipole matrix vectors without numpy overhead."""
+    detumbling_gain = -0.1
+    detumbling_field = [detumbling_gain * element for element in b_field_input]
+    return detumbling_field
 
-/* ============================================================
-   VIRTUAL COMPILER PIPELINE (THE EXECUTION ENGINE)
-   ============================================================ */
-function runVirtualPythonModule(fname) {
-  const consoleEl = document.getElementById("stdoutConsole");
-  let output = "";
-  
-  simStep++;
-  let t = simStep * 0.2;
+if __name__ == "__main__":
+    mock_b_field = [1.0e-5, -0.5e-5, 2.0e-5]
+    commanded_detumbling_field = calculate_detumbling_field(mock_b_field)
+    print(f"Commanded Detumbling Output: {commanded_detumbling_field} T")`,
 
-  if (anomalyActive && fname === anomalyFaultFile) {
-    if (fname.includes("battery") || fname.includes("regulator")) {
-      hwState.temp = 58.4 + Math.sin(t) * 2;
-      hwState.soc = Math.max(0, hwState.soc - 0.4);
-      hwState.bus = 3.9 + Math.random() * 0.1;
-      output = `>>> Running ${fname}...\n[CRITICAL FAULT] Thermal overload detected in lithium cells!\nPack Temp: ${hwState.temp.toFixed(1)}°C (Limit: 50°C)\nBus Voltage dropped to ${hwState.bus.toFixed(2)}V\nEmergency loop engaged.`;
-    } else if (fname.includes("controller") || fname.includes("sensor") || fname.includes("actuator")) {
-      hwState.spin = 4.25 + Math.sin(t) * 0.1;
-      hwState.perr = 8.4 + Math.cos(t) * 0.3;
-      output = `>>> Running ${fname}...\n[ATTITUDE CRITICAL] Satellite body tumbling: ${hwState.spin.toFixed(3)} rad/s\nPointing error expanded beyond operational beamwidth: ${hwState.perr.toFixed(2)} deg\n[ERROR] Escaping pointer tracking matrix.`;
-    } else if (fname.includes("watchdog") || fname.includes("dispatcher") || fname.includes("flash")) {
-      hwState.wdog = 7.8;
-      hwState.pkt = 0;
-      output = `>>> Running ${fname}...\n[SYS FAULT] CDH command processing loop timed out!\nWatchdog expiration: ${hwState.wdog.toFixed(1)}s / 8.0s limit.\nBus packet rate dropped to zero.`;
-    } else {
-      hwState.rssi = -118;
-      hwState.dopp = 1950;
-      output = `>>> Running ${fname}...\n[LINK CRITICAL] Ground downlink frame mismatch!\nSignal strength below floor limit: ${hwState.rssi} dBm\nUncompensated Doppler frequency drift.`;
-    }
-    consoleEl.className = "font-mono text-[11px] text-red-400 p-3 h-28 overflow-y-auto rounded-lg bg-black border border-red-900";
-    consoleEl.innerText = output;
-    return;
-  }
+            "EPS/power_distribution_manager.py": `"""
+ShakthiSAT Flight Suite - Electrical Power System (EPS)
+Power Distribution Manager (power_distribution_manager.py)
 
-  consoleEl.className = "font-mono text-[11px] text-emerald-400 p-3 h-28 overflow-y-auto rounded-lg bg-black border border-slate-800";
-  
-  switch(fname) {
-    case "eps_battery_manager.py":
-      hwState.soc = Math.max(90, Math.min(100, 98.4 + Math.sin(t/10) * 0.8));
-      hwState.temp = 24.5 + Math.cos(t/15) * 1.1;
-      let cells = [3.81, 3.84, 3.72, 3.68].map(v => (v + Math.sin(t)*0.01).toFixed(2));
-      output = `>>> Running __main__ execution for BatteryManager...\nSoC: ${hwState.soc.toFixed(2)}%\nTemp: ${hwState.temp.toFixed(1)} C\nBalanced cell voltages: [${cells.join(', ')}]\nStatus: Cell balancing pipeline NOMINAL`;
-      break;
-    case "eps_solar_regulator.py":
-      hwState.chg = Math.round(420 + Math.sin(t/5) * 35);
-      hwState.bus = 5.02 + Math.cos(t/8) * 0.04;
-      output = `>>> Executing perturb_and_observe() loop...\nPanel input tracking profile: ${(hwState.chg * 4.2).toFixed(1)} mW\nBuck converter duty cycle stabilized.\nRegulated bus output: ${(hwState.bus * 1000).toFixed(0)} mV`;
-      break;
-    case "eps_power_distribution.py":
-      output = `>>> Querying PowerDistribution switched rail registry...\nRail [ADCS]: ONLINE (220 mA)\nRail [CDH]: ONLINE (180 mA)\nRail [PAYLOAD]: OFFLINE (0 mA)\nTotal estimated draw: 400 mA\nOver-current protection routines: PASS`;
-      break;
-    case "eps_telemetry.py":
-      let mockHex = "1ACFFC1D" + Math.floor(hwState.soc * 10).toString(16) + Math.floor(hwState.bus * 1000).toString(16);
-      output = `>>> Compiling native structural network frame package...\nCCSDS encapsulation complete.\nHousekeeping frame payload hex representation:\n0x${mockHex.toUpperCase()}\nFrame checksum matches.`;
-      break;
-    case "adcs_sensor_fusion.py":
-      hwState.quat = 1.0000 + (Math.random() - 0.5) * 0.0004;
-      output = `>>> Fusing multi-axis sensor matrices...\nRaw inputs validated from Gyro & Magnetometer registries.\nQuaternion vector computed: (${hwState.quat.toFixed(4)}, 0.012, -0.004, 0.002)\nNormalized scalar error bounds: nominal`;
-      break;
-    case "adcs_controller.py":
-      if (hwState.spin > 0.05) hwState.spin -= 0.15;
-      else hwState.spin = 0.02 + Math.sin(t/12) * 0.01;
-      output = `>>> Processing closed-loop PID control laws...\nTarget orientation delta: ${hwState.spin.toFixed(4)} rad/s\nB-Dot damping law generated current: 1.14A\nPointing status: Lock achieved.`;
-      break;
-    case "adcs_actuator_interface.py":
-      hwState.wheel = Math.round(2100 + Math.sin(t/4) * 80);
-      output = `>>> Translating orientation torque vectors to magnetic dipoles...\nCommanding reaction wheels x-axis array target to ${hwState.wheel} RPM.\nClamping actuator outputs below ceiling thresholds: PASS`;
-      break;
-    case "adcs_orbit_propagator.py":
-      hwState.perr = 0.25 + Math.abs(Math.sin(t/20) * 0.12);
-      output = `>>> Propagating analytical two-body Keplerian track...\nOrbital transit calculation period: 94.20 min\nTrue anomaly reference calculated at epoch step: 142.083 deg\nCurrent deviation variance metric: ${hwState.perr.toFixed(3)} deg`;
-      break;
-    case "cdh_telemetry_aggregator.py":
-      output = `>>> Running high-priority ingest pipeline wrapper...\nMerged framework node indices: ['eps', 'adcs', 'payload']\nGenerated sequence signature block: ${Math.round(45100 + t % 1000)}\nPacket validation token: 0x1A2`;
-      break;
-    case "cdh_command_dispatcher.py":
-      hwState.cmdq = Math.max(0, Math.round(2 + Math.sin(t/3)));
-      output = `>>> Polling priority command registers...\nMin-heap priority layout depth: ${hwState.cmdq} records active.\nNext scheduled transaction instruction: SLEW [Priority 2, arguments=0x04]`;
-      break;
-    case "cdh_flash_fs.py":
-      hwState.flash = parseFloat((37.4 + (simStep * 0.002)).toFixed(2));
-      output = `>>> Polling flash cluster memory allocation indexes...\nActive recording node: payload_capture_${Math.round(1000 + t % 500)}.bin\nPartition mapping layout: Wear level cursor shifted smoothly.\nTotal disk capacity consumed: ${hwState.flash}%`;
-      break;
-    case "cdh_watchdog.py":
-      hwState.wdog = 1.5 + Math.abs(Math.sin(t) * 1.8);
-      output = `>>> Hardware supervisor checking core loop telemetry metrics...\nWatchdog pulse state: PET RECEIVED\nCountdown timer window reset margin: ${hwState.wdog.toFixed(1)}s / 8.0s timeout ceiling.\nHeartbeat system status: HEALTHY`;
-      break;
-    case "gs_receiver.py":
-      output = `>>> Processing baseband signal hex frames via SDR decoder...\nSync Word 0x1ACFFC1D verified.\nExtracted transfer block contents: [64 Bytes Data Package]\nDecoding stream frame sequence data CRC verification: PASS`;
-      break;
-    case "gs_transmitter.py":
-      output = `>>> Compiling telecommand structural byte frame arrays...\nEncoding opcode data block elements with CCITT standard polynomial.\nGenerated complete uplink carrier string: 1ACFFC1D02032DCC73\nTransmission pipeline: Ready to dispatch`;
-      break;
-    case "gs_dashboard.py":
-      output = `>>> Aggregating active ground display console viewports...\n[SYSTEM DISPATCH ENTRIES]\nSOC_PCT   : ${hwState.soc.toFixed(1)}%\nBUS_MV    : ${(hwState.bus*1000).toFixed(0)}mV\nSPIN_RATE : ${hwState.spin.toFixed(3)}rad/s\nAll streams formatted correctly.`;
-      break;
-    case "gs_pass_predictor.py":
-      hwState.elev = Math.max(0, 35.0 + Math.sin(t/10) * 15);
-      hwState.rssi = Math.round(-85 + Math.sin(t/10) * 8);
-      hwState.dopp = Math.round(-800 + Math.cos(t/8) * 150);
-      hwState.pass = Math.max(1, Math.round(15 - t/30));
-      output = `>>> Calculating analytical station look-angles...\nTarget satellite pass footprint horizon elevation track: ${hwState.elev.toFixed(1)} deg\nExpected window duration parameters matching: 11.4 minutes`;
-      break;
-  }
-  
-  consoleEl.innerText = output;
-}
+Implements an autonomous Fault Detection, Isolation, and Recovery (FDIR) loop
+monitoring main battery bus voltage and executing load-shedding commands.
+"""
 
-/* ============================================================
-   RENDER: manifest tree
-   ============================================================ */
-const treeEl = document.getElementById("manifestTree");
+class PowerDistributionManager:
+    def __init__(self, critical_threshold_v: float = 3.4):
+        self.critical_threshold_v = critical_threshold_v
+        self.system_mode = "NOMINAL"
+        self.rails_online = {"CDH": True, "Radio_RX": True, "Radio_TX": True, "Payload": True}
 
-function buildTree(){
-  treeEl.innerHTML = "";
-  Object.keys(DOMAINS).forEach(domainKey => {
-    const meta = DOMAINS[domainKey];
-    const group = document.createElement("div");
-    group.className = "domain-group";
+    def check_battery_voltage(self, voltage: float) -> dict:
+        if voltage < self.critical_threshold_v:
+            self.system_mode = "SAFE_MODE"
+            self.rails_online["Radio_TX"] = False
+            self.rails_online["Payload"] = False
+        else:
+            self.system_mode = "NOMINAL"
+            self.rails_online["Radio_TX"] = True
+            self.rails_online["Payload"] = True
 
-    const head = document.createElement("div");
-    head.className = "domain-head";
-    head.innerHTML = `
-      <span class="flex items-center gap-2">
-        <i data-lucide="${meta.icon}" class="w-3.5 h-3.5" style="color:${meta.accent}"></i>
-        ${domainKey} <span class="text-slate-500 font-normal hidden lg:inline">· ${meta.label}</span>
-      </span>
-      <i data-lucide="chevron-right" class="chev open w-3.5 h-3.5"></i>`;
+        return {"mode": self.system_mode, "rails": self.rails_online.copy()}`,
 
-    const body = document.createElement("div");
-    body.className = "domain-body";
-    body.style.maxHeight = "500px";
+            "EPS/battery_charging_sim.py": `"""
+ShakthiSAT Flight Suite - Electrical Power System (EPS)
+Battery Charging Simulator (battery_charging_sim.py)
 
-    FILE_ORDER[domainKey].forEach(fname => {
-      const btn = document.createElement("button");
-      btn.className = "tree-btn my-1" + (fname === selectedFile ? " active" : "");
-      btn.dataset.file = fname;
-      btn.innerHTML = `<i data-lucide="file-code" class="w-3 h-3 flex-shrink-0"></i><span class="truncate">${fname}</span>`;
-      btn.addEventListener("click", () => selectFile(fname));
-      body.appendChild(btn);
-    });
+Simulates continuous orbital battery state modifications, computing buck-converter 
+efficiency behaviors across sunlight propagation horizons and eclipse intervals.
+"""
 
-    head.addEventListener("click", () => {
-      const chev = head.querySelector(".chev");
-      const isOpen = chev.classList.contains("open");
-      chev.classList.toggle("open");
-      body.style.maxHeight = isOpen ? "0px" : "500px";
-    });
+BATTERY_CAPACITY_AH = 10.0
+CHARGING_EFFICIENCY = 0.90
+BATTERY_NOMINAL_VOLTAGE_V = 12.0
 
-    group.appendChild(head);
-    group.appendChild(body);
-    treeEl.appendChild(group);
-  });
-  lucide.createIcons();
-  refreshFaultVisuals();
-}
+class BatteryChargingSimulation:
+    def __init__(self, initial_soc_pct: float = 50.0):
+        self.battery_charge_ah = BATTERY_CAPACITY_AH * (initial_soc_pct / 100.0)
+        self.time_elapsed_min = 0
 
-function refreshFaultVisuals(){
-  document.querySelectorAll(".tree-btn").forEach(btn => {
-    btn.classList.remove("fault");
-    if (anomalyActive && btn.dataset.file === anomalyFaultFile) btn.classList.add("fault");
-  });
-}
+    def run_orbit_step(self, is_in_sunlight: bool):
+        if is_in_sunlight:
+            solar_power_w = 30.0 * 2.0
+            current_into_battery_a = (solar_power_w * CHARGING_EFFICIENCY) / BATTERY_NOMINAL_VOLTAGE_V
+            self.battery_charge_ah += (current_into_battery_a / 60.0)
+        
+        if self.battery_charge_ah > BATTERY_CAPACITY_AH:
+            self.battery_charge_ah = BATTERY_CAPACITY_AH`,
 
-/* ============================================================
-   RENDER: code viewport + metadata
-   ============================================================ */
-const codeBlock = document.getElementById("codeBlock");
-const fileNameLabel = document.getElementById("fileNameLabel");
-const lineCountBadge = document.getElementById("lineCountBadge");
-const byteSizeBadge = document.getElementById("byteSizeBadge");
-const activeDomainLabel = document.getElementById("activeDomainLabel");
+            "EPS/depth_of_discharge_tracker.py": `"""
+ShakthiSAT Flight Suite - Electrical Power System (EPS)
+Depth of Discharge Tracker (depth_of_discharge_tracker.py)
 
-function selectFile(fname){
-  selectedFile = fname;
-  const mod = MODULES[fname];
-  fileNameLabel.textContent = fname;
-  codeBlock.textContent = mod.code;
-  Prism.highlightElement(codeBlock);
+Simulates multi-epoch battery health degradation vectors as a linear decay 
+function bound to orbital Depth of Discharge (DoD) profiling metrics.
+"""
 
-  const lines = mod.code.split("\n").length;
-  const bytes = new Blob([mod.code]).size;
-  lineCountBadge.innerHTML = `<i data-lucide="align-left" class="w-3 h-3"></i> ${lines} lines`;
-  byteSizeBadge.innerHTML = `<i data-lucide="hard-drive" class="w-3 h-3"></i> ${bytes.toLocaleString()} B`;
-  lucide.createIcons();
+import random
 
-  activeDomainLabel.textContent = `${mod.domain} · ${DOMAINS[mod.domain].label}`;
+class DepthOfDischargeTracker:
+    def __init__(self, initial_capacity_pct: float = 100.0):
+        self.current_capacity = initial_capacity_pct
 
-  document.querySelectorAll(".tree-btn").forEach(b => b.classList.toggle("active", b.dataset.file === fname));
-  refreshFaultVisuals();
-  buildMetrics(mod.domain);
-  runVirtualPythonModule(fname);
-  pushThought(mod.domain, true);
-}
+    def track_degradation_step(self):
+        dod = random.uniform(0.10, 0.30)
+        degradation_factor = dod * 0.001
+        self.current_capacity -= (100.0 * degradation_factor)
+        return self.current_capacity`,
 
-/* ============================================================
-   RENDER: telemetry metrics
-   ============================================================ */
-const metricsGrid = document.getElementById("metricsGrid");
+            "EPS/shunt_regulator.py": `"""
+ShakthiSAT Flight Suite - Electrical Power System (EPS)
+Shunt Regulator Simulation (shunt_regulator.py)
 
-function buildMetrics(domainKey){
-  const defs = METRIC_DEFS[domainKey];
-  metricsGrid.innerHTML = defs.map(d => `
-    <div class="metric-card" data-key="${d.key}">
-      <div class="font-mono text-[10px] uppercase tracking-wide text-slate-500">${d.label}</div>
-      <div class="metric-val" id="val-${d.key}">${hwState[d.key].toFixed(d.decimals)}<span class="text-[11px] text-slate-500 font-normal">${d.unit}</span></div>
-      <div class="metric-bar-track"><div class="metric-bar-fill" id="bar-${d.key}" style="width:50%"></div></div>
-    </div>
-  `).join("");
-}
+Models active power regulation loops, evaluating power dump limits when 
+solar arrays generate power exceeding maximum battery capacity.
+"""
 
-function tickMetrics(){
-  const activeFileObj = MODULES[selectedFile];
-  runVirtualPythonModule(selectedFile);
+class ShuntRegulator:
+    def __init__(self, max_dissipation_watts: float = 150.0):
+        self.max_dissipation_watts = max_dissipation_watts
+        self.dissipated_power_watts = 0.0
 
-  const defs = METRIC_DEFS[activeFileObj.domain];
-  defs.forEach(d => {
-    let v = hwState[d.key];
-    const valEl = document.getElementById(`val-${d.key}`);
-    const barEl = document.getElementById(`bar-${d.key}`);
-    if (!valEl) return;
-    
-    valEl.innerHTML = `${v.toFixed(d.decimals)}<span class="text-[11px] text-slate-500 font-normal">${d.unit}</span>`;
+    def dissipate_excess_power(self, excess_power_watts: float) -> float:
+        if excess_power_watts > 0:
+            self.dissipated_power_watts = min(excess_power_watts, self.max_dissipation_watts)
+        else:
+            self.dissipated_power_watts = 0.0
+        return self.dissipated_power_watts`,
 
-    const pct = Math.max(4, Math.min(100, Math.abs(v / d.max) * 100));
-    barEl.style.width = pct + "%";
+            "EPS/solar_panel_sun_tracker.py": `"""
+ShakthiSAT Flight Suite - Electrical Power System (EPS)
+Solar Panel Sun Tracker (solar_panel_sun_tracker.py)
 
-    valEl.classList.remove("warn","crit");
-    if (anomalyActive && selectedFile === anomalyFaultFile) {
-      valEl.classList.add("crit");
-    } else if (pct > 85 || pct < 15) {
-      valEl.classList.add("warn");
-    }
-  });
-}
+Resolves external sun position tracking vectors into structural actuator target 
+angles using clear quadrant-safe trigonometric mappings.
+"""
 
-/* ============================================================
-   TERMINAL FEED (AI MONITOR BRAIN)
-   ============================================================ */
-const terminalFeed = document.getElementById("terminalFeed");
+import math
 
-function pushLine(text, colorVar){
-  const line = document.createElement("div");
-  line.className = "term-line py-0.5";
-  line.style.color = colorVar || "var(--ink-dim)";
-  line.textContent = `[${nowTimeShort()}] ${text}`;
-  terminalFeed.appendChild(line);
-  terminalFeed.scrollTop = terminalFeed.scrollHeight;
-  while (terminalFeed.children.length > 40) terminalFeed.removeChild(terminalFeed.firstChild);
-}
+class SolarPanelSunTracker:
+    def calculate_optimal_angle(self, sun_vector: tuple) -> float:
+        x, y = sun_vector
+        if x == 0.0 and y == 0.0: return 0.0
+        angle_deg = math.degrees(math.atan2(y, x))
+        if angle_deg < 0: angle_deg += 360.0
+        return round(angle_deg, 2)`
+        };
 
-function pushThought(domainKey, immediate){
-  const pool = AI_THOUGHTS[domainKey];
-  const text = pool[Math.floor(Math.random() * pool.length)];
-  const color = text.startsWith("[WARN]") ? "var(--amber)" : text.startsWith("[THOUGHT]") ? "var(--teal)" : "var(--cyan)";
-  pushLine(text, color);
-}
+        let anomalyModeActive = false;
 
-function nowTimeShort(){
-  const d = new Date();
-  return d.toISOString().substr(11,8) + "Z";
-}
+        function selectFile(fileName) {
+            document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            document.getElementById('activeFileNameHeader').innerHTML = `<i class="fa-solid fa-file-code"></i> ${fileName}`;
+            document.getElementById('codeViewerBox').textContent = codeRepository[fileName];
+        }
 
-/* ============================================================
-   ANOMALY SIMULATION & SELF-HEALING ACTION BRAIN
-   ============================================================ */
-const anomalyBtn = document.getElementById("anomalyBtn");
-const anomalyStatus = document.getElementById("anomalyStatus");
-const anomalyFill = document.getElementById("anomalyFill");
-const anomalyPct = document.getElementById("anomalyPct");
-const anomalyLabel = document.getElementById("anomalyLabel");
+        function createLogEntry(type, tag, text) {
+            const terminal = document.getElementById('terminalLog');
+            const timeStr = new Date().toLocaleTimeString();
+            
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span class="log-ts">[${timeStr}]</span><span class="log-tag ${type}">[${tag}]</span><span class="log-text">${text}</span>`;
+            
+            terminal.appendChild(entry);
+            terminal.scrollTop = terminal.scrollHeight;
+            
+            // Prune old logs to avoid DOM drag
+            while (terminal.childNodes.length > 40) {
+                terminal.removeChild(terminal.firstChild);
+            }
+        }
 
-anomalyBtn.addEventListener("click", () => {
-  if (anomalyActive) return;
-  const domainKey = MODULES[selectedFile].domain;
-  
-  anomalyFaultFile = FILE_ORDER[domainKey][Math.floor(Math.random() * FILE_ORDER[domainKey].length)];
-  anomalyActive = true;
-  refreshFaultVisuals();
+        function triggerAnomaly() {
+            anomalyModeActive = true;
+            createLogEntry('crit', 'HARDWARE_ALERT', 'Simulating immediate lithium battery structural anomaly loop... Bus drop detected.');
+        }
 
-  anomalyBtn.disabled = true;
-  anomalyBtn.style.opacity = "0.5";
-  anomalyStatus.classList.remove("hidden");
-  anomalyLabel.textContent = "Autonomous agent analyzing telemetry corruption...";
-  anomalyFill.style.width = "0%";
+        // Live Operational Data Simulation Engine
+        let trackingCycle = 0;
+        function runTelemetryLoop() {
+            if (!document.getElementById('liveLoopToggle').checked) return;
 
-  pushLine(`[WARN] Autonomy Core flagged out-of-bounds telemetry state inside ${anomalyFaultFile}`, "var(--amber)");
-  pushLine(`[THOUGHT] Isolating thread... processing algorithmic recovery routine.`, "var(--teal)");
+            trackingCycle++;
+            let currentVoltage = anomalyModeActive ? parseFloat((3.15 + Math.random() * 0.15).toFixed(2)) : parseFloat((3.72 + Math.random() * 0.25).toFixed(2));
+            let calculatedAltitude = (380.45 + Math.sin(trackingCycle * 0.05) * 15.2).toFixed(2);
+            let simulatedSunAngle = [0.00, 45.00, 180.00, 270.00][trackingCycle % 4];
 
-  let pct = 0;
-  const interval = setInterval(() => {
-    pct += 5 + Math.random() * 5;
-    if (pct >= 100) pct = 100;
-    anomalyFill.style.width = pct + "%";
-    anomalyPct.textContent = Math.round(pct) + "%";
-    
-    if (pct > 40 && pct < 80) {
-      anomalyLabel.textContent = `Injecting self-healing software hotpatch to ${anomalyFaultFile}...`;
-    }
+            // Update Graphical Telemetry Teleview HUD Card Layout Blocks
+            document.getElementById('card-v').querySelector('.card-val').textContent = `${currentVoltage} V`;
+            document.getElementById('card-altitude').querySelector('.card-val').textContent = `${calculatedAltitude} km`;
+            document.getElementById('card-sun').querySelector('.card-val').textContent = `${simulatedSunAngle.toFixed(2)}°`;
 
-    if (pct === 100){
-      clearInterval(interval);
-      
-      hwState.temp = 24.8;
-      hwState.spin = 0.02;
-      hwState.wdog = 3.2;
-      hwState.rssi = -82;
-      hwState.bus = 5.01;
-      hwState.pkt = 42;
+            const modeCard = document.getElementById('card-mode');
+            
+            if (currentVoltage < 3.4) {
+                // FDIR Engagement Triggers
+                modeCard.className = 'teleview-card fault';
+                modeCard.querySelector('.card-val').textContent = 'SAFE_MODE';
+                modeCard.querySelector('.card-val').style.color = 'var(--accent-red)';
+                
+                createLogEntry('warn', 'EPS_PDU', `[FDIR INITIATED] Bus Low: ${currentVoltage}V. Load-shedding Radio_TX and Payload rails to maintain CDH runtime core safety.`);
+            } else {
+                anomalyModeActive = false; // Self-recovery state
+                modeCard.className = 'teleview-card nominal';
+                modeCard.querySelector('.card-val').textContent = 'NOMINAL';
+                modeCard.querySelector('.card-val').style.color = 'var(--accent-green)';
 
-      pushLine(`[SUCCESS] AI core compiled patch structure. Hot-swap complete on module: ${anomalyFaultFile}`, "var(--cyan)");
-      anomalyLabel.textContent = "All flight modules cleared and nominal.";
-      
-      setTimeout(() => {
-        anomalyActive = false;
-        anomalyFaultFile = null;
-        refreshFaultVisuals();
-        anomalyBtn.disabled = false;
-        anomalyBtn.style.opacity = "1";
-        anomalyStatus.classList.add("hidden");
-        tickMetrics();
-      }, 1500);
-    }
-  }, 180);
-});
+                if (trackingCycle % 3 === 0) {
+                    createLogEntry('info', 'ADCS_B_DOT', `Damping loop executed. Commanded dipole correction output: [-1.0e-06, 5.0e-07, -2.1e-06] T.`);
+                } else if (trackingCycle % 3 === 1) {
+                    createLogEntry('info', 'EPS_SHUNT', `Battery capacity optimal. Shunt regulator actively dumping excess energy grid at safe thermal dissipation levels.`);
+                } else {
+                    createLogEntry('info', 'SYS_HEALTH', `Housekeeping Frame Packet #${trackingCycle} aggregated successfully. Downlink pipeline clear.`);
+                }
+            }
+        }
 
-/* ============================================================
-   TELEMETRY TOGGLE
-   ============================================================ */
-const telemetryToggle = document.getElementById("telemetryToggle");
-telemetryToggle.addEventListener("click", () => {
-  telemetryOn = !telemetryOn;
-  telemetryToggle.classList.toggle("on", telemetryOn);
-});
-
-/* ============================================================
-   COPY CODE
-   ============================================================ */
-const copyBtn = document.getElementById("copyBtn");
-const copyLabel = document.getElementById("copyLabel");
-copyBtn.addEventListener("click", async () => {
-  try {
-    await navigator.clipboard.writeText(MODULES[selectedFile].code);
-    copyLabel.textContent = "copied!";
-    setTimeout(() => copyLabel.textContent = "copy code", 1500);
-  } catch(e){
-    copyLabel.textContent = "copy failed";
-    setTimeout(() => copyLabel.textContent = "copy code", 1500);
-  }
-});
-
-/* ============================================================
-   CLOCK
-   ============================================================ */
-function tickClock(){
-  const d = new Date();
-  document.getElementById("utcClock").textContent = d.toISOString().substr(11,8) + "Z";
-}
-setInterval(tickClock, 1000);
-tickClock();
-
-/* ============================================================
-   MAIN SUBSYSTEM RUNTIME COROUTINES
-   ============================================================ */
-setInterval(() => { if (telemetryOn) tickMetrics(); }, 1000);
-setInterval(() => { pushThought(MODULES[selectedFile].domain, false); }, 5000);
-
-/* ============================================================
-   INITIALIZATION TRIGGER
-   ============================================================ */
-buildTree();
-selectFile(selectedFile);
-pushLine("[INFO] Autonomous satellite flight software architecture initialized.", "var(--cyan)");
-pushLine("[THOUGHT] Core telemetry processing systems matching structural expectations.", "var(--teal)");
-</script>
+        // Initialize display arrays and timers
+        selectFile('telemetry_generator.py');
+        setInterval(runTelemetryLoop, 2500);
+        createLogEntry('info', 'BOOT_CORE', 'ShakthiSAT Operating Suite Firmware initialized successfully on core aerospace nodes.');
+    </script>
 </body>
 </html>

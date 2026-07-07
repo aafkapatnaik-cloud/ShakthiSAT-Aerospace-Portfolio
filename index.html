@@ -91,33 +91,33 @@
         <div class="file-tree">
             <div class="folder-node">
                 <div class="folder-title"><i class="fa-solid fa-folder-open"></i> Core Root</div>
-                <div class="file-item active" onclick="selectFile('telemetry_generator.py')">
+                <div class="file-item active" id="file-telemetry_generator.py" onclick="selectFile('telemetry_generator.py')">
                     <i class="fa-solid fa-file-code" style="color: var(--accent-orange)"></i> telemetry_generator.py
                 </div>
             </div>
 
             <div class="folder-node">
                 <div class="folder-title"><i class="fa-solid fa-folder"></i> ADCS</div>
-                <div class="file-item" onclick="selectFile('ADCS/magnetorquer_controller.py')">
+                <div class="file-item" id="file-ADCS_magnetorquer_controller.py" onclick="selectFile('ADCS/magnetorquer_controller.py')">
                     <i class="fa-solid fa-file-code" style="color: #4da6ff"></i> magnetorquer_controller.py
                 </div>
             </div>
 
             <div class="folder-node">
                 <div class="folder-title"><i class="fa-solid fa-folder"></i> EPS</div>
-                <div class="file-item" onclick="selectFile('EPS/power_distribution_manager.py')">
+                <div class="file-item" id="file-EPS_power_distribution_manager.py" onclick="selectFile('EPS/power_distribution_manager.py')">
                     <i class="fa-solid fa-file-code" style="color: #4dffb8"></i> power_distribution_manager.py
                 </div>
-                <div class="file-item" onclick="selectFile('EPS/battery_charging_sim.py')">
+                <div class="file-item" id="file-EPS_battery_charging_sim.py" onclick="selectFile('EPS/battery_charging_sim.py')">
                     <i class="fa-solid fa-file-code" style="color: #4dffb8"></i> battery_charging_sim.py
                 </div>
-                <div class="file-item" onclick="selectFile('EPS/depth_of_discharge_tracker.py')">
+                <div class="file-item" id="file-EPS_depth_of_discharge_tracker.py" onclick="selectFile('EPS/depth_of_discharge_tracker.py')">
                     <i class="fa-solid fa-file-code" style="color: #4dffb8"></i> depth_of_discharge_tracker.py
                 </div>
-                <div class="file-item" onclick="selectFile('EPS/shunt_regulator.py')">
+                <div class="file-item" id="file-EPS_shunt_regulator.py" onclick="selectFile('EPS/shunt_regulator.py')">
                     <i class="fa-solid fa-file-code" style="color: #4dffb8"></i> shunt_regulator.py
                 </div>
-                <div class="file-item" onclick="selectFile('EPS/solar_panel_sun_tracker.py')">
+                <div class="file-item" id="file-EPS_solar_panel_sun_tracker.py" onclick="selectFile('EPS/solar_panel_sun_tracker.py')">
                     <i class="fa-solid fa-file-code" style="color: #4dffb8"></i> solar_panel_sun_tracker.py
                 </div>
             </div>
@@ -358,10 +358,19 @@ class SolarPanelSunTracker:
         };
 
         let anomalyModeActive = false;
+        let trackingCycle = 0;
+        let lastLoggedMode = ""; 
 
         function selectFile(fileName) {
+            // Remove active classes cleanly using ID loops instead of event bindings
             document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            
+            // Map the names safely to toggle selection highlights
+            let safeId = "file-" + fileName.replace("/", "_");
+            let activeEl = document.getElementById(safeId);
+            if (activeEl) {
+                activeEl.classList.add('active');
+            }
             
             document.getElementById('activeFileNameHeader').innerHTML = `<i class="fa-solid fa-file-code"></i> ${fileName}`;
             document.getElementById('codeViewerBox').textContent = codeRepository[fileName];
@@ -385,11 +394,8 @@ class SolarPanelSunTracker:
 
         function triggerAnomaly() {
             anomalyModeActive = true;
+            runTelemetryLoop(); // Force update instantly upon trigger
         }
-
-        // Live Operational Data Simulation Engine
-        let trackingCycle = 0;
-        let lastLoggedMode = ""; 
 
         function runTelemetryLoop() {
             if (!document.getElementById('liveLoopToggle').checked) return;
@@ -399,7 +405,7 @@ class SolarPanelSunTracker:
             let calculatedAltitude = (380.45 + Math.sin(trackingCycle * 0.05) * 15.2).toFixed(2);
             let simulatedSunAngle = [0.00, 45.00, 180.00, 270.00][trackingCycle % 4];
 
-            // Update Graphical Telemetry HUD Cards
+            // Update Dynamic Telemetry HUD Displays live every cycle!
             document.getElementById('card-v').querySelector('.card-val').textContent = `${currentVoltage} V`;
             document.getElementById('card-altitude').querySelector('.card-val').textContent = `${calculatedAltitude} km`;
             document.getElementById('card-sun').querySelector('.card-val').textContent = `${simulatedSunAngle.toFixed(2)}°`;
@@ -407,7 +413,6 @@ class SolarPanelSunTracker:
             const modeCard = document.getElementById('card-mode');
             
             if (currentVoltage < 3.4) {
-                // FDIR Engagement Triggers
                 modeCard.className = 'teleview-card fault';
                 modeCard.querySelector('.card-val').textContent = 'SAFE_MODE';
                 modeCard.querySelector('.card-val').style.color = 'var(--accent-red)';
@@ -437,15 +442,13 @@ class SolarPanelSunTracker:
             }
         }
 
-      // Initialize display arrays and timers
-selectFile('telemetry_generator.py');
-
-      // Run the very first loop immediately so the console isn't blank at boot
-runTelemetryLoop(); 
-createLogEntry('info', 'BOOT_CORE', 'ShakthiSAT Operating Suite Firmware initialized successfully on core aerospace nodes.');
-
-    // Set up the ongoing loop cycle
-setInterval(runTelemetryLoop, 2500);
-</script>
+        // Initialize core display frames and set safe boot orders
+        selectFile('telemetry_generator.py');
+        createLogEntry('info', 'BOOT_CORE', 'ShakthiSAT Operating Suite Firmware initialized successfully on core aerospace nodes.');
+        
+        // Fire up the active running loop clock right away!
+        runTelemetryLoop();
+        setInterval(runTelemetryLoop, 2500);
+    </script>
 </body>
 </html>

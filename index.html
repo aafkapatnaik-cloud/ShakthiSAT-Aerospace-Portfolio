@@ -437,10 +437,15 @@ class SolarPanelSunTracker:
             }
         }
 
-        // Initialize display arrays and timers
-        selectFile('telemetry_generator.py');
-        setInterval(runTelemetryLoop, 2500);
-        createLogEntry('info', 'BOOT_CORE', 'ShakthiSAT Operating Suite Firmware initialized successfully on core aerospace nodes.');
-    </script>
+      // Initialize display arrays and timers
+selectFile('telemetry_generator.py');
+
+      // Run the very first loop immediately so the console isn't blank at boot
+runTelemetryLoop(); 
+createLogEntry('info', 'BOOT_CORE', 'ShakthiSAT Operating Suite Firmware initialized successfully on core aerospace nodes.');
+
+    // Set up the ongoing loop cycle
+setInterval(runTelemetryLoop, 2500);
+</script>
 </body>
 </html>

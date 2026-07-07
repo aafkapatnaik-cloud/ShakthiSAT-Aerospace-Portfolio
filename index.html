@@ -362,10 +362,8 @@ class SolarPanelSunTracker:
         let lastLoggedMode = ""; 
 
         function selectFile(fileName) {
-            // Remove active classes cleanly using ID loops instead of event bindings
             document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
             
-            // Map the names safely to toggle selection highlights
             let safeId = "file-" + fileName.replace("/", "_");
             let activeEl = document.getElementById(safeId);
             if (activeEl) {
@@ -394,25 +392,31 @@ class SolarPanelSunTracker:
 
         function triggerAnomaly() {
             anomalyModeActive = true;
-            runTelemetryLoop(); // Force update instantly upon trigger
+            runTelemetryLoop(); // Process immediately when clicked
         }
 
         function runTelemetryLoop() {
             if (!document.getElementById('liveLoopToggle').checked) return;
 
             trackingCycle++;
-            let currentVoltage = anomalyModeActive ? parseFloat((3.15 + Math.random() * 0.15).toFixed(2)) : parseFloat((3.72 + Math.random() * 0.25).toFixed(2));
-            let calculatedAltitude = (380.45 + Math.sin(trackingCycle * 0.05) * 15.2).toFixed(2);
-            let simulatedSunAngle = [0.00, 45.00, 180.00, 270.00][trackingCycle % 4];
+            
+            // Calculate voltage based on anomaly trigger state
+            let currentVoltage;
+            if (anomalyModeActive) {
+                currentVoltage = parseFloat((3.15 + Math.random() * 0.15).toFixed(2));
+            } else {
+                currentVoltage = parseFloat((3.72 + Math.random() * 0.25).toFixed(2));
+            }
 
-            // Update Dynamic Telemetry HUD Displays live every cycle!
+            // Update Dynamic Telemetry HUD Displays
             document.getElementById('card-v').querySelector('.card-val').textContent = `${currentVoltage} V`;
-            document.getElementById('card-altitude').querySelector('.card-val').textContent = `${calculatedAltitude} km`;
-            document.getElementById('card-sun').querySelector('.card-val').textContent = `${simulatedSunAngle.toFixed(2)}°`;
+            document.getElementById('card-altitude').querySelector('.card-val').textContent = `${(380.45 + Math.sin(trackingCycle * 0.05) * 15.2).toFixed(2)} km`;
+            document.getElementById('card-sun').querySelector('.card-val').textContent = `${[0.00, 45.00, 180.00, 270.00][trackingCycle % 4].toFixed(2)}°`;
 
             const modeCard = document.getElementById('card-mode');
             
             if (currentVoltage < 3.4) {
+                // Enter Safe Mode visually
                 modeCard.className = 'teleview-card fault';
                 modeCard.querySelector('.card-val').textContent = 'SAFE_MODE';
                 modeCard.querySelector('.card-val').style.color = 'var(--accent-red)';
@@ -421,14 +425,17 @@ class SolarPanelSunTracker:
                     createLogEntry('crit', 'FDIR_ENGAGED', `Bus Low: ${currentVoltage}V. Load-shedding Radio_TX and Payload rails to protect C&DH core.`);
                     lastLoggedMode = "SAFE_MODE";
                 }
+                
+                // CRITICAL FIX: Reset the anomaly flag so the next timer clock recovers naturally!
+                anomalyModeActive = false;
             } else {
-                anomalyModeActive = false; 
+                // Return to Nominal status cleanly
                 modeCard.className = 'teleview-card nominal';
                 modeCard.querySelector('.card-val').textContent = 'NOMINAL';
                 modeCard.querySelector('.card-val').style.color = 'var(--accent-green)';
                 
                 if (lastLoggedMode === "SAFE_MODE") {
-                    createLogEntry('info', 'SYS_RECOVERY', `Voltage stabilized to ${currentVoltage}V. All system rails restored.`);
+                    createLogEntry('info', 'SYS_RECOVERY', `Voltage stabilized to ${currentVoltage}V. All system rails fully restored.`);
                 }
                 lastLoggedMode = "NOMINAL";
 
@@ -442,11 +449,10 @@ class SolarPanelSunTracker:
             }
         }
 
-        // Initialize core display frames and set safe boot orders
+        // Initialize display arrays and clocks safely
         selectFile('telemetry_generator.py');
         createLogEntry('info', 'BOOT_CORE', 'ShakthiSAT Operating Suite Firmware initialized successfully on core aerospace nodes.');
         
-        // Fire up the active running loop clock right away!
         runTelemetryLoop();
         setInterval(runTelemetryLoop, 2500);
     </script>

@@ -378,7 +378,6 @@ class SolarPanelSunTracker:
             terminal.appendChild(entry);
             terminal.scrollTop = terminal.scrollHeight;
             
-            // Prune old logs to avoid DOM drag
             while (terminal.childNodes.length > 40) {
                 terminal.removeChild(terminal.firstChild);
             }
@@ -386,11 +385,12 @@ class SolarPanelSunTracker:
 
         function triggerAnomaly() {
             anomalyModeActive = true;
-            createLogEntry('crit', 'HARDWARE_ALERT', 'Simulating immediate lithium battery structural anomaly loop... Bus drop detected.');
         }
 
         // Live Operational Data Simulation Engine
         let trackingCycle = 0;
+        let lastLoggedMode = ""; 
+
         function runTelemetryLoop() {
             if (!document.getElementById('liveLoopToggle').checked) return;
 
@@ -399,7 +399,7 @@ class SolarPanelSunTracker:
             let calculatedAltitude = (380.45 + Math.sin(trackingCycle * 0.05) * 15.2).toFixed(2);
             let simulatedSunAngle = [0.00, 45.00, 180.00, 270.00][trackingCycle % 4];
 
-            // Update Graphical Telemetry Teleview HUD Card Layout Blocks
+            // Update Graphical Telemetry HUD Cards
             document.getElementById('card-v').querySelector('.card-val').textContent = `${currentVoltage} V`;
             document.getElementById('card-altitude').querySelector('.card-val').textContent = `${calculatedAltitude} km`;
             document.getElementById('card-sun').querySelector('.card-val').textContent = `${simulatedSunAngle.toFixed(2)}°`;
@@ -412,17 +412,25 @@ class SolarPanelSunTracker:
                 modeCard.querySelector('.card-val').textContent = 'SAFE_MODE';
                 modeCard.querySelector('.card-val').style.color = 'var(--accent-red)';
                 
-                createLogEntry('warn', 'EPS_PDU', `[FDIR INITIATED] Bus Low: ${currentVoltage}V. Load-shedding Radio_TX and Payload rails to maintain CDH runtime core safety.`);
+                if (lastLoggedMode !== "SAFE_MODE") {
+                    createLogEntry('crit', 'FDIR_ENGAGED', `Bus Low: ${currentVoltage}V. Load-shedding Radio_TX and Payload rails to protect C&DH core.`);
+                    lastLoggedMode = "SAFE_MODE";
+                }
             } else {
-                anomalyModeActive = false; // Self-recovery state
+                anomalyModeActive = false; 
                 modeCard.className = 'teleview-card nominal';
                 modeCard.querySelector('.card-val').textContent = 'NOMINAL';
                 modeCard.querySelector('.card-val').style.color = 'var(--accent-green)';
+                
+                if (lastLoggedMode === "SAFE_MODE") {
+                    createLogEntry('info', 'SYS_RECOVERY', `Voltage stabilized to ${currentVoltage}V. All system rails restored.`);
+                }
+                lastLoggedMode = "NOMINAL";
 
                 if (trackingCycle % 3 === 0) {
                     createLogEntry('info', 'ADCS_B_DOT', `Damping loop executed. Commanded dipole correction output: [-1.0e-06, 5.0e-07, -2.1e-06] T.`);
                 } else if (trackingCycle % 3 === 1) {
-                    createLogEntry('info', 'EPS_SHUNT', `Battery capacity optimal. Shunt regulator actively dumping excess energy grid at safe thermal dissipation levels.`);
+                    createLogEntry('info', 'EPS_SHUNT', `Battery capacity optimal. Shunt regulator actively redirecting excess solar flux.`);
                 } else {
                     createLogEntry('info', 'SYS_HEALTH', `Housekeeping Frame Packet #${trackingCycle} aggregated successfully. Downlink pipeline clear.`);
                 }
